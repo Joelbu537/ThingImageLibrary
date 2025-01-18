@@ -53,7 +53,7 @@ namespace ThingImageLibrary
                             }
                         }
                     }
-                    if (!key.IsKeyProtected())
+                    if (!key.IsPasswordProtected())
                     {
                         bool keyBool = key.Load();
                     }

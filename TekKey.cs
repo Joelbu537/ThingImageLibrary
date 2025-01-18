@@ -54,32 +54,18 @@ namespace ThingImageLibrary
                 byte[] hashedBytes = new byte[keyBytes.Length - 4];
                 Array.Copy(keyBytes, 4, hashedBytes, 0, hashedBytes.Length);
 
-                if (pwdProtected && password != "")
+                if (isPasswordProtected && password != "")
                 {
-                    using (SHA256 sha256 = SHA256.Create())
-                    {
-                        byte[] pwdHashEncrypted = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                        if(pwdHashEncrypted == pwdHash.ToArray())
-                        {
-                            key = aesHash.ToArray();
-                            iv = ivHash.ToArray();
-                            KeyID = BitConverter.ToInt32(keyID.ToArray(), 0);
-                            return true;
-                        }
-                        else
-                        {
-                            throw new AccessViolationException("Password is incorrect!");
-                        }
-                    }
+
                 }
-                else if(pwdProtected && password == "")
+                else if(isPasswordProtected && password == "")
                 {
-                    throw new AccessViolationException("Key is password protected!");
+                    throw new TekKeyPasswordException("Key is password protected but no password was passed to the method.");
                 }
-                else if (!pwdProtected)
+                else if (!isPasswordProtected)
                 {
-                    key = aesHash.ToArray();
-                    iv = ivHash.ToArray();
+                    if(password != "")
+                        Debug.WriteLine("WARNING: It is not necessary to pass a password when the target key is not password protected.");
                 }
             }
             else if (password == null)
@@ -178,5 +164,11 @@ namespace ThingImageLibrary
         public InvalidTekKeyFormatException() : base() { }
         public InvalidTekKeyFormatException(string message) : base(message) { }
         public InvalidTekKeyFormatException(string message, Exception inner) : base(message, inner) { }
+    }
+    public class TekKeyPasswordException : Exception
+    {
+        public TekKeyPasswordException() : base() { }
+        public TekKeyPasswordException(string message) : base(message) { }
+        public TekKeyPasswordException(string message, Exception inner) : base(message, inner) { }
     }
 }
