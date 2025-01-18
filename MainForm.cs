@@ -37,7 +37,7 @@ namespace ThingImageLibrary
                 if(loadkey == DialogResult.Yes)
                 {
                     TekKey key = new TekKey(files[0]);
-                    if (key.IsKeyProtected())
+                    if (key.IsPasswordProtected())
                     {
                         Application.Run(new PasswordRequiredForm());
                         if (passwordStatus == PasswordStatus.Set)

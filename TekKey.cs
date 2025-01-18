@@ -46,37 +46,13 @@ namespace ThingImageLibrary
             if (File.Exists(path) && Path.GetExtension(path) == ".tek" && password != null)
             {
                 byte[] keyBytes = File.ReadAllBytes(path);
-                List<byte> VersionList = new List<byte>();
-                List<byte> pwdHash = new List<byte>();
-                List<byte> aesHash = new List<byte>();
-                List<byte> ivHash = new List<byte>();
-                List<byte> keyID = new List<byte>();
-                bool pwdProtected = false;
 
-                for (int i = 0; i < 4; i++)
-                {
-                    VersionList.Add(keyBytes[i]);
-                }
-                for (int i = 4; i < 36; i++)
-                {
-                    if (keyBytes[i] != 0)
-                    {
-                        pwdProtected = true;
-                    }
-                    pwdHash.Add(keyBytes[i]);
-                }
-                for (int i = 36; i < 68; i++)
-                {
-                    aesHash.Add(keyBytes[i]);
-                }
-                for (int i = 68; i < 84; i++)
-                {
-                    ivHash.Add(keyBytes[i]);
-                }
-                for(int i = 84; i < 88; i++)
-                {
-                    keyID.Add(keyBytes[i]);
-                }
+                ushort keyID = (ushort)((keyBytes[1] << 8) | keyBytes[0]);
+                byte version = keyBytes[2];
+                bool isPasswordProtected = (keyBytes[3] == 1) ? true : false;
+
+                byte[] hashedBytes = new byte[keyBytes.Length - 4];
+                Array.Copy(keyBytes, 4, hashedBytes, 0, hashedBytes.Length);
 
                 if (pwdProtected && password != "")
                 {
@@ -110,9 +86,17 @@ namespace ThingImageLibrary
             {
                 throw new ArgumentNullException("Password cannot be null!");
             }
+            else if(Path.GetExtension(path) != ".tek")
+            {
+                throw new InvalidTekKeyFormatException("The path does not point to a .tek file.\n" + path);
+            }
+            else if (!File.Exists(path))
+            {
+                throw new FileNotFoundException("The path does not point to a existing file.\n" + path);
+            }
             else
             {
-                throw new FileNotFoundException("TekKey not found at ", path);
+                
             }
             return false;
         }
@@ -132,6 +116,7 @@ namespace ThingImageLibrary
                 //Private Info
 
                 byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+
                
                 // Private Info END
 
