@@ -15,64 +15,95 @@ namespace ThingImageLibrary
 {
     public class TekKey
     {
-        private static byte[] key = null;
-        private static byte[] iv = null;
-        public static byte Version { get; private set; }
-        public static int KeyID { get; private set; }
-        private static string path = string.Empty;
+        private static byte[] Key = null;
+        private static byte[] IV = null;
+        public static byte Version { get; private set; } = 0;
+        public static int KeyID { get; private set; } = 0;
+        public static bool PasswordProtected { get; private set; } = false;
+
         private static byte newestVersion = 2;
         private static byte oldestSupportedVersion = 2;
-        public TekKey(string _path)
+        public bool Load(byte[] keyBytes, string password = "")
         {
-            path = _path;
-        }
-        public TekKey()
-        {
-            path = null;
-        }
-        public bool IsPasswordProtected()
-        {
-            if (path == string.Empty)
-                throw new InvalidTekKeyException("No TekKey is loaded.");
-            if(File.Exists(path) && Path.GetExtension(path) == ".tek")
+            if (password != null)
             {
-                byte[] keyBytes = File.ReadAllBytes(path);
-                return (keyBytes[3] == 1) ? true : false;
-            }
-            throw new InvalidTekKeyFormatException("TekKey could not be read.");
-        }
-        public bool Load(string password = "") //Leave empty if no password
-        {
-            if (File.Exists(path) && Path.GetExtension(path) == ".tek" && password != null)
-            {
-                byte[] keyBytes = File.ReadAllBytes(path);
-
                 ushort keyID = (ushort)((keyBytes[1] << 8) | keyBytes[0]);
+
                 byte version = keyBytes[2];
+                if(version < oldestSupportedVersion)
+                {
+                    throw new OutdatedTekKeyException($"TekKey version is {version}, while oldest supported version is {oldestSupportedVersion}.");
+                }
+
                 bool isPasswordProtected = (keyBytes[3] == 1) ? true : false;
 
-                byte[] hashedBytes = new byte[keyBytes.Length - 4];
-                Array.Copy(keyBytes, 4, hashedBytes, 0, hashedBytes.Length);
+                byte[] md5Hash = new byte[16];
+                for(int i = 0; i < 20; i++)
+                {
+                    md5Hash[i - 4] = keyBytes[i];
+                }
+
+                byte[] privateBytes = new byte[keyBytes.Length - 20];
+                for(int i = 0; i < privateBytes.Length - 20; i++)
+                {
+                    privateBytes[i] = keyBytes[i + 20];
+                }
 
                 if (isPasswordProtected && password != "")
                 {
 
+
+
+                    // TO DO!!!!!
+
+
+
                 }
-                else if(isPasswordProtected && password == "")
+                else if (isPasswordProtected && password == "")
                 {
                     throw new TekKeyPasswordException("Key is password protected but no password was passed to the method.");
                 }
                 else if (!isPasswordProtected)
                 {
-                    if(password != "")
+                    if (password != "")
                         Debug.WriteLine("WARNING: It is not necessary to pass a password when the target key is not password protected.");
+
+                    Version = version;
+                    KeyID = keyID;
+                    PasswordProtected = isPasswordProtected;
+
+                    byte[] _key = new byte[32];
+                    byte[] _iv = new byte[16];
+
+                    for(int i = 0; i < 32; i++)
+                    {
+                        _key[i] = privateBytes[i];
+                    }
+                    for(int i = 0; i < 16; i++)
+                    {
+                        _iv[i] = keyBytes[i + 32];
+                    }
+                    Key = _key;
+                    IV = _iv;
                 }
             }
             else if (password == null)
             {
                 throw new ArgumentNullException("Password cannot be null!");
             }
-            else if(Path.GetExtension(path) != ".tek")
+            else
+            {
+
+            }
+            return false;
+        }
+        public bool Load(string path, string password = "") //Leave empty if no password
+        {
+            if (File.Exists(path) && Path.GetExtension(path) == ".tek")
+            {
+                return Load(File.ReadAllBytes(path), password);
+            }
+            else if (Path.GetExtension(path) != ".tek")
             {
                 throw new InvalidTekKeyFormatException("The path does not point to a .tek file.\n" + path);
             }
@@ -80,15 +111,16 @@ namespace ThingImageLibrary
             {
                 throw new FileNotFoundException("The path does not point to a existing file.\n" + path);
             }
-            else
-            {
-                
-            }
-            return false;
+            throw new Exception("Unreachable point reached! This should not happen!!!");
         }
-        public byte[] Generate(string name, string password = "")
+        public byte[] Generate(string password = "")
         {
             byte[] result = null;
+
+            byte[] aesMainKey;
+            byte[] aesMainIV;
+            byte[] privateMD5 = new byte[16];
+            Array.Clear(privateMD5, 0, privateMD5.Length);
             try
             {
                 //Public Info
@@ -100,13 +132,30 @@ namespace ThingImageLibrary
                 //Public Info END
 
                 //Private Info
+                using(Aes aes = Aes.Create())
+                {
+                    aes.GenerateKey();
+                    aes.GenerateIV();
+                    aesMainKey = aes.Key;
+                    aesMainIV = aes.IV;
+                }
+                byte[] tempArray = aesMainKey.Concat(aesMainIV).ToArray();
+                if (password != "")
+                {
+                    byte[] passwordBytes;
+                    passwordBytes = Encoding.UTF8.GetBytes(password);
+                    privateMD5 = GetMD5(tempArray);
+                    tempArray = EncryptWithPassword(tempArray, password);
+                }
 
-                byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
 
-               
+
                 // Private Info END
-
-                return result;
+                return result = BitConverter.GetBytes(keyID)                    //ID
+                    .Concat(BitConverter.GetBytes(version)).ToArray()           //Version
+                    .Concat(BitConverter.GetBytes(pwdProtected)).ToArray()      //PWD Status
+                    .Concat(privateMD5).ToArray()                               //MD5
+                    .Concat(tempArray).ToArray();                               //AES Key + IV
             }
             catch (Exception ex)
             {
@@ -117,7 +166,7 @@ namespace ThingImageLibrary
 
         private async Task<byte[]> Encrypt(string path)
         {
-            if(key == null || iv == null)
+            if(Key == null || IV == null)
             {
                 throw new InvalidOperationException("TekKey not loaded!\nUse TekKey.Load(path) to load a .tek key file.");
             }
@@ -125,8 +174,8 @@ namespace ThingImageLibrary
             {
                 using (Aes aes = Aes.Create())
                 {
-                    aes.Key = key;
-                    aes.IV = iv;
+                    aes.Key = Key;
+                    aes.IV = IV;
 
                     using (FileStream fsInput = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true))
                     using (MemoryStream memoryStream = new MemoryStream())
@@ -145,6 +194,43 @@ namespace ThingImageLibrary
             {
                 throw new InvalidOperationException("File is not a .tef file!");
             }
+        }
+        private byte[] GetMD5(byte[] bytes)
+        {
+            using(MD5 md5 = MD5.Create())
+            {
+                return md5.ComputeHash(bytes);
+            }
+        }
+        private byte[] EncryptWithPassword(byte[] data, string password)
+        {
+            var aes = Aes.Create();
+            var keyDerivation = new Rfc2898DeriveBytes(password, aes.BlockSize / 8);
+            aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+            aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+
+            //Verschlüsseln
+            var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+            var ms = new MemoryStream();
+            var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+            cs.Write(data, 0, data.Length);
+            cs.FlushFinalBlock();
+            return ms.ToArray();
+        }
+        private byte[] DecryptWithPassword(byte[] encryptedData, string password)
+        {
+            var aes = Aes.Create();
+            var keyDerivation = new Rfc2898DeriveBytes(password, aes.BlockSize / 8);
+            aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
+            aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+
+            //Entschlüsseln
+            var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+            var ms = new MemoryStream(encryptedData);
+            var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+            var reader = new MemoryStream();
+            cs.CopyTo(reader);
+            return reader.ToArray();
         }
     }
     public class InvalidTekKeyException : Exception
