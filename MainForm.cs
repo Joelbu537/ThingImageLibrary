@@ -31,23 +31,58 @@ namespace ThingImageLibrary
             string[] files = Directory.GetFiles(currentdirectory, "*.tek");
             if(files.Length > 0)
             {
-                TekKey key = new TekKey(files[0]);
-                if (key.IsKeyProtected())
+                labelKeyStatus.Text = "FOUND";
+                labelKeyStatus.ForeColor = Color.Orange;
+                DialogResult loadkey = MessageBox.Show("A .tek key was found in the current directory. Do you want to load it?", "Key found", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if(loadkey == DialogResult.Yes)
                 {
-                    Application.Run(new PasswordRequiredForm());
-                    if (passwordStatus == PasswordStatus.Set)
+                    TekKey key = new TekKey(files[0]);
+                    if (key.IsKeyProtected())
                     {
-                        string _password = password;
-                        password = System.String.Empty;
-                        passwordStatus = PasswordStatus.Undefined;
-                        key.Load(_password);
+                        Application.Run(new PasswordRequiredForm());
+                        if (passwordStatus == PasswordStatus.Set)
+                        {
+                            string _password = password;
+                            password = System.String.Empty;
+                            passwordStatus = PasswordStatus.Undefined;
+                            bool keyBool = key.Load(_password);
+                            if (!keyBool)
+                            {
+                                MessageBox.Show("Password is incorrect.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Application.Exit();
+                            }
+                        }
+                    }
+                    if (!key.IsKeyProtected())
+                    {
+                        bool keyBool = key.Load();
                     }
                 }
-                if(!key.IsKeyProtected())
-                {
-                    key.Load();
-                }
             }
+        }
+
+        private void listViewLibrary_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void buttonLoadKey_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openKeyDialog = new OpenFileDialog
+            {
+                Filter = "TEK-Key (*.tek)|*.tek",
+                Title = "Select a TEK Key"
+            };
+
+            if (openKeyDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filepath = openKeyDialog.FileName;
+            }
+        }
+
+        private void buttonGenerateNewKey_Click(object sender, EventArgs e)
+        {
+
         }
     }
     public enum PasswordStatus

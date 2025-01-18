@@ -8,6 +8,8 @@ using System.Security.Cryptography;
 using System.Drawing.Text;
 using System.Net.Http;
 using System.Diagnostics;
+using System.Security.Policy;
+using System.Windows.Forms;
 
 namespace ThingImageLibrary
 {
@@ -15,7 +17,11 @@ namespace ThingImageLibrary
     {
         private static byte[] key = null;
         private static byte[] iv = null;
+        public static byte Version { get; private set; }
+        public static int KeyID { get; private set; }
         private static string path;
+        private static byte newestVersion = 2;
+        private static byte oldestSupportedVersion = 2;
         public TekKey(string _path)
         {
             path = _path;
@@ -44,7 +50,7 @@ namespace ThingImageLibrary
             }
             return false;
         }
-        public void Load(string password = "") //Leave empty if no password
+        public bool Load(string password = "") //Leave empty if no password
         {
             if (File.Exists(path) && Path.GetExtension(path) == ".tek" && password != null)
             {
@@ -53,6 +59,7 @@ namespace ThingImageLibrary
                 List<byte> pwdHash = new List<byte>();
                 List<byte> aesHash = new List<byte>();
                 List<byte> ivHash = new List<byte>();
+                List<byte> keyID = new List<byte>();
                 bool pwdProtected = false;
 
                 for (int i = 0; i < 4; i++)
@@ -75,6 +82,10 @@ namespace ThingImageLibrary
                 {
                     ivHash.Add(keyBytes[i]);
                 }
+                for(int i = 84; i < 88; i++)
+                {
+                    keyID.Add(keyBytes[i]);
+                }
 
                 if (pwdProtected && password != "")
                 {
@@ -85,6 +96,8 @@ namespace ThingImageLibrary
                         {
                             key = aesHash.ToArray();
                             iv = ivHash.ToArray();
+                            KeyID = BitConverter.ToInt32(keyID.ToArray(), 0);
+                            return true;
                         }
                         else
                         {
@@ -110,7 +123,76 @@ namespace ThingImageLibrary
             {
                 throw new FileNotFoundException("TekKey not found at ", path);
             }
+            return false;
         }
+        public byte[] Generate(string name, string password = "")
+        {
+            byte[] result = null;
+            try
+            {
+                //Public Info
+                ushort keyID = Convert.ToUInt16(new Random().Next(0, 65535));
+                byte version = newestVersion;
+                byte pwdProtected = (password != "") ? (byte)1 : (byte)0;
+
+                //Public Info END
+
+                //Private Info
+                byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+                byte[] aesKey;
+                byte[] aesIV;
+
+                using (Aes aes = Aes.Create())
+                {
+                    aes.GenerateKey();
+                    aes.GenerateIV();
+                    aesKey = aes.Key;
+                    aesIV = aes.IV;
+                }
+
+                //Salt erstellen
+                byte[] salt = new byte[16];
+                using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(salt);
+                }
+
+                byte[] key;
+                using (var rfc2898 = new Rfc2898DeriveBytes(passwordBytes, salt, 10000))
+                {
+                    key = rfc2898.GetBytes(32);
+                }
+
+                byte[] encryptedAesKey;
+                byte[] iv;
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = key;
+                    aes.GenerateIV();
+                    iv = aes.IV;
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        using (CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+                        {
+                            cs.Write(aesKey, 0, aesKey.Length);
+                        }
+                        encryptedAesKey = ms.ToArray();
+                    }
+                }
+
+                // Private Info END
+
+                result = BitConverter.GetBytes(keyID).Co
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Fehler: {ex.Message}");
+                return null;
+            }
+        }
+
         private async Task<byte[]> Encrypt(string path)
         {
             if(key == null || iv == null)
