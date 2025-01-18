@@ -217,6 +217,44 @@ namespace ThingImageLibrary
             }
             return Encrypt(File.ReadAllBytes(path)).Result;
         }
+        private async Task<MemoryStream> Decrypt(byte[] data)
+        {
+            if (Key == null || IV == null)
+            {
+                throw new InvalidOperationException("TekKey not loaded!\nUse TekKey.Load(path) to load a .tek key file.");
+            }
+            try
+            {
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = Key;
+                    aes.IV = IV;
+
+                    var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                    var ms = new MemoryStream(data);
+                    var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+                    var result = new MemoryStream();
+                    cs.CopyTo(result);
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        private async Task<MemoryStream> Decrpt(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException("The path does not point to a existing file");
+            }
+            if (Path.GetExtension(path) != ".tef")
+            {
+                throw new TekEncryptionTargetException("Target file is not encrypted!");
+            }
+            return Decrypt(File.ReadAllBytes(path)).Result;
+        }
         private byte[] GetMD5(byte[] bytes)
         {
             using(MD5 md5 = MD5.Create())
