@@ -39,14 +39,24 @@ namespace ThingImageLibrary
                 {
                     try
                     {
-                        key.Load(files[0]);
+                        bool success = false;
+                        success = key.Load(files[0]);
+                        if (success)
+                        {
+                            labelKeyStatus.Text = "LOADED";
+                            labelKeyStatus.ForeColor = Color.Green;
+                            buttonCreateLibrary.Enabled = true;
+                            buttonLoadKey.Enabled = false;
+                            buttonLoadLibrary.Enabled = true;
+                        }
                     }
                     catch(TekKeyPasswordRequiredException p)
                     {
                         bool success = false;
                         do
                         {
-                            Application.Run(new PasswordRequiredForm());
+                            PasswordRequiredForm passwordRequiredForm = new PasswordRequiredForm();
+                            passwordRequiredForm.ShowDialog();
                             if (passwordStatus == PasswordStatus.Set)
                             {
                                 string _password = password;
@@ -70,6 +80,9 @@ namespace ThingImageLibrary
                         {
                             labelKeyStatus.Text = "LOADED";
                             labelKeyStatus.ForeColor = Color.Green;
+                            buttonCreateLibrary.Enabled = true;
+                            buttonLoadKey.Enabled = false;
+                            buttonLoadLibrary.Enabled = true;
                         }
                         
                     }
@@ -101,7 +114,8 @@ namespace ThingImageLibrary
                     bool success = false;
                     do
                     {
-                        Application.Run(new PasswordRequiredForm());
+                        PasswordRequiredForm passwordRequiredForm = new PasswordRequiredForm();
+                        passwordRequiredForm.ShowDialog();
                         if (passwordStatus == PasswordStatus.Set)
                         {
                             string _password = password;

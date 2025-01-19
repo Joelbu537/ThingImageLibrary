@@ -75,42 +75,58 @@ namespace ThingImageLibrary
         }
         public bool Load(byte[] keyBytes, string password = "")
         {
+            Debug.WriteLine("Loading key...");
             if (password != null)
             {
                 ushort keyID = (ushort)((keyBytes[1] << 8) | keyBytes[0]);
+                Debug.WriteLine($"KeyID: {keyID}");
 
                 byte version = keyBytes[2];
-                if(version < oldestSupportedVersion)
+                Debug.WriteLine($"Version {version}");
+                if (version < oldestSupportedVersion)
                 {
                     throw new OutdatedTekKeyException($"TekKey version is {version}, while oldest supported version is {oldestSupportedVersion}.");
                 }
 
                 bool isPasswordProtected = (keyBytes[3] == 1) ? true : false;
+                Debug.WriteLine($"Password protected: {isPasswordProtected}");
 
                 byte[] md5Hash = new byte[16];
-                for(int i = 4; i < 2; i++)
+                Debug.Write("MD5 Hash: ");
+                for(int i = 4; i < 20; i++)
                 {
                     md5Hash[i - 4] = keyBytes[i];
+                    Debug.Write(keyBytes[i]);
+                }
+                Debug.Write("\n");
+
+                byte[] privateBytes = new byte[48];
+                if (isPasswordProtected)
+                {
+                    Debug.WriteLine("Extracting protected AES Key & IV");
+                    privateBytes = new byte[keyBytes.Length - 20];
+                    for (int i = 0; i < privateBytes.Length - 20; i++)
+                    {
+                        privateBytes[i] = keyBytes[i + 20];
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("Extracting AES Key & IV");
                 }
 
-                byte[] privateBytes = new byte[keyBytes.Length - 20];
-                for(int i = 0; i < privateBytes.Length - 20; i++)
-                {
-                    privateBytes[i] = keyBytes[i + 20];
-                }
 
                 if (isPasswordProtected && password != "")
                 {
-                    Version = version;
-                    KeyID = keyID;
-                    PasswordProtected = isPasswordProtected;
-
+                    Debug.WriteLine("Loading with password...");
                     byte[] _key = new byte[32];
                     byte[] _iv = new byte[16];
 
                     byte[] privateEncrypted = DecryptWithPassword(privateBytes, password);
-                    if(GetMD5(privateEncrypted) == md5Hash)
+                    Debug.WriteLine("Comparing MD5...");
+                    if (GetMD5(privateEncrypted).SequenceEqual(md5Hash))
                     {
+                        Debug.WriteLine("MD5 OK");
                         for (int i = 0; i < 32; i++)
                         {
                             _key[i] = privateEncrypted[i];
@@ -121,10 +137,14 @@ namespace ThingImageLibrary
                         }
                         Key = _key;
                         IV = _iv;
+                        Version = version;
+                        KeyID = keyID;
+                        PasswordProtected = isPasswordProtected;
                         return true;
                     }
                     else
                     {
+                        Debug.WriteLine("MD5 NOT OK");
                         throw new TekKeyPasswordInvalidException("Incorrect password!");
                     }
                 }
@@ -144,16 +164,22 @@ namespace ThingImageLibrary
                     byte[] _key = new byte[32];
                     byte[] _iv = new byte[16];
 
+                    Debug.Write("Key:");
                     for(int i = 0; i < 32; i++)
                     {
-                        _key[i] = privateBytes[i];
+                        Debug.Write(" " + keyBytes[i + 20]);
+                        _key[i] = keyBytes[i + 20];
                     }
+                    Debug.Write("\nIV:");
                     for(int i = 0; i < 16; i++)
                     {
-                        _iv[i] = keyBytes[i + 32];
+                        Debug.Write(" " + keyBytes[i + 52]);
+                        _iv[i] = keyBytes[i + 52];
                     }
+                    Debug.Write("\n");
                     Key = _key;
                     IV = _iv;
+                    Debug.WriteLine("Unprotected Key loaded");
                     return true;
                 }
             }
