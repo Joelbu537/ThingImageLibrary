@@ -16,6 +16,7 @@ namespace ThingImageLibrary
     {
         public static PasswordStatus passwordStatus { get; set; }
         public static string password { get; set; }
+        private static TekKey key = new TekKey();
         public MainForm()
         {
             InitializeComponent();
@@ -36,26 +37,41 @@ namespace ThingImageLibrary
                 DialogResult loadkey = MessageBox.Show("A .tek key was found in the current directory. Do you want to load it?", "Key found", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                 if(loadkey == DialogResult.Yes)
                 {
-                    TekKey key = new TekKey(files[0]);
-                    if (key.IsPasswordProtected())
+                    try
                     {
-                        Application.Run(new PasswordRequiredForm());
-                        if (passwordStatus == PasswordStatus.Set)
-                        {
-                            string _password = password;
-                            password = System.String.Empty;
-                            passwordStatus = PasswordStatus.Undefined;
-                            bool keyBool = key.Load(_password);
-                            if (!keyBool)
-                            {
-                                MessageBox.Show("Password is incorrect.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                Application.Exit();
-                            }
-                        }
+                        key.Load(files[0]);
                     }
-                    if (!key.IsPasswordProtected())
+                    catch(TekKeyPasswordRequiredException p)
                     {
-                        bool keyBool = key.Load();
+                        bool success = false;
+                        do
+                        {
+                            Application.Run(new PasswordRequiredForm());
+                            if (passwordStatus == PasswordStatus.Set)
+                            {
+                                string _password = password;
+                                password = System.String.Empty;
+                                passwordStatus = PasswordStatus.Undefined;
+                                try
+                                {
+                                    success = key.Load(_password);
+                                }
+                                catch (TekKeyPasswordInvalidException ex)
+                                {
+                                    success = false;
+                                }
+                            }
+                            else if(passwordStatus == PasswordStatus.Canceled)
+                            {
+                                break;
+                            }
+                        } while (!success);
+                        if (success)
+                        {
+                            labelKeyStatus.Text = "LOADED";
+                            labelKeyStatus.ForeColor = Color.Green;
+                        }
+                        
                     }
                 }
             }
@@ -76,13 +92,49 @@ namespace ThingImageLibrary
 
             if (openKeyDialog.ShowDialog() == DialogResult.OK)
             {
-                string filepath = openKeyDialog.FileName;
+                try
+                {
+                    key.Load(openKeyDialog.FileName);
+                }
+                catch (TekKeyPasswordRequiredException p)
+                {
+                    bool success = false;
+                    do
+                    {
+                        Application.Run(new PasswordRequiredForm());
+                        if (passwordStatus == PasswordStatus.Set)
+                        {
+                            string _password = password;
+                            password = System.String.Empty;
+                            passwordStatus = PasswordStatus.Undefined;
+                            try
+                            {
+                                success = key.Load(openKeyDialog.FileName, _password);
+                            }
+                            catch (TekKeyPasswordInvalidException ex)
+                            {
+                                success = false;
+                            }
+                        }
+                        else if (passwordStatus == PasswordStatus.Canceled)
+                        {
+                            break;
+                        }
+                    } while (!success);
+                    if (success)
+                    {
+                        labelKeyStatus.Text = "LOADED";
+                        labelKeyStatus.ForeColor = Color.Green;
+                    }
+
+                }
             }
         }
 
         private void buttonGenerateNewKey_Click(object sender, EventArgs e)
         {
-
+            CreateKeyForm createKeyForm = new CreateKeyForm();
+            createKeyForm.ShowDialog();
         }
     }
     public enum PasswordStatus

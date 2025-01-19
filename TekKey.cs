@@ -88,7 +88,7 @@ namespace ThingImageLibrary
                 bool isPasswordProtected = (keyBytes[3] == 1) ? true : false;
 
                 byte[] md5Hash = new byte[16];
-                for(int i = 0; i < 20; i++)
+                for(int i = 4; i < 2; i++)
                 {
                     md5Hash[i - 4] = keyBytes[i];
                 }
@@ -125,12 +125,12 @@ namespace ThingImageLibrary
                     }
                     else
                     {
-                        throw new TekKeyPasswordException("Incorrect password!");
+                        throw new TekKeyPasswordInvalidException("Incorrect password!");
                     }
                 }
                 else if (isPasswordProtected && password == "")
                 {
-                    throw new TekKeyPasswordException("Key is password protected but no password was passed to the method.");
+                    throw new TekKeyPasswordRequiredException("Key is password protected but no password was passed to the method.");
                 }
                 else if (!isPasswordProtected)
                 {
@@ -316,6 +316,18 @@ namespace ThingImageLibrary
         public TekKeyPasswordException() : base() { }
         public TekKeyPasswordException(string message) : base(message) { }
         public TekKeyPasswordException(string message, Exception inner) : base(message, inner) { }
+    }
+    public class TekKeyPasswordRequiredException : TekKeyPasswordException
+    {
+        public TekKeyPasswordRequiredException() : base() { }
+        public TekKeyPasswordRequiredException(string message) : base(message) { }
+        public TekKeyPasswordRequiredException(string message, Exception inner) : base(message, inner) { }
+    }
+    public class TekKeyPasswordInvalidException : TekKeyPasswordException
+    {
+        public TekKeyPasswordInvalidException() : base() { }
+        public TekKeyPasswordInvalidException(string message) : base(message) { }
+        public TekKeyPasswordInvalidException(string message, Exception inner) : base(message, inner) { }
     }
     public class TekEncryptionTargetException : Exception
     {

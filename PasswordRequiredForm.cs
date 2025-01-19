@@ -12,9 +12,13 @@ namespace ThingImageLibrary
 {
     public partial class PasswordRequiredForm : Form
     {
-        public PasswordRequiredForm()
+        public PasswordRequiredForm(bool _status = false)
         {
             InitializeComponent();
+            if (_status)
+            {
+                labelIncorrectPassword.Enabled = true;
+            }
         }
 
         private void textBoxPassword_TextChanged(object sender, EventArgs e)

@@ -33,7 +33,7 @@ namespace ThingImageLibrary
         }
         private void CheckEnable()
         {
-            if (textBoxName.Text.Length > 0 && textBoxPassword.Text.Length > 0 && textBoxPasswordConfirm.Text.Length > 0)
+            if (textBoxName.Text.Length > 0 && ((checkBoxPwdRequired.Checked && textBoxPassword.Text.Length > 6 && textBoxPasswordConfirm.Text.Length > 6 && textBoxPasswordConfirm.Text == textBoxPassword.Text) || (!checkBoxPwdRequired.Checked)) )
             {
                 buttonOK.Enabled = true;
             }
@@ -45,14 +45,30 @@ namespace ThingImageLibrary
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
-
+            byte[] keyBytes;
+            TekKey key = new TekKey();
+            if (checkBoxPwdRequired.Checked)
+            {
+                keyBytes = key.Generate(textBoxPassword.Text);
+            }
+            else
+            {
+                keyBytes = key.Generate();
+            }
+            SaveFileDialog saveKeyDialog = new SaveFileDialog
+            {
+                Filter = "TEK-Key (*.tek)|*.tek",
+                Title = "Save your new TEK Key",
+                FileName = textBoxName.Text + ".tek"
+            };
+            if (saveKeyDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = saveKeyDialog.FileName;
+                System.IO.File.WriteAllBytes(filePath, keyBytes);
+                MessageBox.Show("Key created successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
         }
-
-        private void CreateKeyForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void checkBoxPwdRequired_CheckedChanged(object sender, EventArgs e)
         {
             if (checkBoxPwdRequired.Checked)
@@ -65,6 +81,12 @@ namespace ThingImageLibrary
                 textBoxPassword.Enabled = false;
                 textBoxPasswordConfirm.Enabled = false;
             }
+            CheckEnable();
+        }
+
+        private void CreateKeyForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
