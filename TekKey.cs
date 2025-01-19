@@ -205,7 +205,7 @@ namespace ThingImageLibrary
             }
             throw new Exception("Unreachable point reached! This should not happen!!!");
         }
-        private async Task<MemoryStream> Encrypt(byte[] data)
+        public async Task<MemoryStream> Encrypt(byte[] data)
         {
             if (Key == null || IV == null)
             {
@@ -223,6 +223,10 @@ namespace ThingImageLibrary
                     var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
                     cs.Write(data, 0, data.Length);
                     cs.FlushFinalBlock();
+                    byte[] encryptedData = ms.ToArray();
+                    byte[] keyID = BitConverter.GetBytes(KeyID);
+                    byte[] result = keyID.Concat(encryptedData).ToArray();
+                    ms = new MemoryStream(result);
                     return ms;
                 }
             }
@@ -231,7 +235,7 @@ namespace ThingImageLibrary
                 return null;
             }
         }
-        private async Task<MemoryStream> Encrypt(string path)
+        public async Task<MemoryStream> Encrypt(string path)
         {
             if (!File.Exists(path))
             {
@@ -243,11 +247,21 @@ namespace ThingImageLibrary
             }
             return Encrypt(File.ReadAllBytes(path)).Result;
         }
-        private async Task<MemoryStream> Decrypt(byte[] data)
+        public async Task<MemoryStream> Decrypt(byte[] data)
         {
             if (Key == null || IV == null)
             {
                 throw new InvalidOperationException("TekKey not loaded!\nUse TekKey.Load(path) to load a .tek key file.");
+            }
+            ushort keyID = (ushort)((data[1] << 8) | data[0]);
+            if(keyID != KeyID)
+            {
+                throw new InvalidTekKeyException("The key ID of the target file does not match the loaded key ID!");
+            }
+            byte[] bytes = new byte[data.Length - 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = data[i + 2];
             }
             try
             {
@@ -257,7 +271,7 @@ namespace ThingImageLibrary
                     aes.IV = IV;
 
                     var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                    var ms = new MemoryStream(data);
+                    var ms = new MemoryStream(bytes);
                     var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
                     var result = new MemoryStream();
                     cs.CopyTo(result);
@@ -269,7 +283,7 @@ namespace ThingImageLibrary
                 return null;
             }
         }
-        private async Task<MemoryStream> Decrpt(string path)
+        public async Task<MemoryStream> Decrpt(string path)
         {
             if (!File.Exists(path))
             {

@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Microsoft.Data.Sqlite;
 
 namespace ThingImageLibrary
 {
@@ -149,6 +150,63 @@ namespace ThingImageLibrary
         {
             CreateKeyForm createKeyForm = new CreateKeyForm();
             createKeyForm.ShowDialog();
+        }
+
+        private void buttonLoadLibrary_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openKeyDialog = new OpenFileDialog
+            {
+                Filter = "TEK-Database (*.tekdb)|*.tekdb",
+                Title = "Select a Library Database"
+            };
+            if (openKeyDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    MemoryStream tempStream = key.Decrpt(openKeyDialog.FileName).Result;
+                    byte[] decryptedDatabase = tempStream.ToArray();
+                    using (MemoryStream memoryStream = new MemoryStream(decryptedDatabase))
+                    {
+                        //Verbindung zu DB in RAM herstellen
+                        var connectionString = "Data Source=file:memdb1?mode=memory&cache=shared";
+                        using (var connection = new SqliteConnection(connectionString))
+                        {
+                            connection.Open();
+
+                            //Daten in RAM laden
+                            using (var command = connection.CreateCommand())
+                            {
+                                command.CommandText = "ATTACH DATABASE ':memory:' AS ramdb";
+                                command.ExecuteNonQuery();
+
+                                //Stream-Daten in SQLite kopieren
+                                memoryStream.Seek(0, SeekOrigin.Begin);
+                                var tempFilePath = Path.GetTempFileName(); //Temporäre Datei
+                                File.WriteAllBytes(tempFilePath, decryptedDatabase); //Entschlüsselte Datenbank speichern
+                                command.CommandText = $"ATTACH DATABASE '{tempFilePath}' AS tempdb";
+                                command.ExecuteNonQuery();
+
+                                //Beispieldaten abfragen
+                                command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
+                                using (var reader = command.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        Console.WriteLine($"Tabelle: {reader.GetString(0)}");
+                                    }
+                                }
+
+                                // Temporäre Datei löschen
+                                File.Delete(tempFilePath);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
         }
     }
     public enum PasswordStatus

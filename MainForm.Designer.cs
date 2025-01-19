@@ -61,6 +61,7 @@
             this.buttonLoadLibrary.TabIndex = 1;
             this.buttonLoadLibrary.Text = "Load Library";
             this.buttonLoadLibrary.UseVisualStyleBackColor = true;
+            this.buttonLoadLibrary.Click += new System.EventHandler(this.buttonLoadLibrary_Click);
             // 
             // buttonLoadKey
             // 
