@@ -119,6 +119,7 @@
             this.buttonCreateLibrary.TabIndex = 6;
             this.buttonCreateLibrary.Text = "Create New Library";
             this.buttonCreateLibrary.UseVisualStyleBackColor = true;
+            this.buttonCreateLibrary.Click += new System.EventHandler(this.buttonCreateLibrary_Click);
             // 
             // buttonCreateDirectory
             // 

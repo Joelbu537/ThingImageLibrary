@@ -191,7 +191,7 @@ namespace ThingImageLibrary
         }
         public bool Load(string path, string password = "") //Leave empty if no password
         {
-            if (File.Exists(path) && Path.GetExtension(path) == ".tek")
+            if (File.Exists(path) && (Path.GetExtension(path) == ".tek")
             {
                 return Load(File.ReadAllBytes(path), password);
             }

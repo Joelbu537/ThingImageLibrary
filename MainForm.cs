@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace ThingImageLibrary
     public partial class MainForm : Form
     {
         public static PasswordStatus passwordStatus { get; set; }
+        public static SqliteConnection DatabaseConnection { get; set; }
         public static string password { get; set; }
         private static TekKey key = new TekKey();
         public MainForm()
@@ -154,58 +156,67 @@ namespace ThingImageLibrary
 
         private void buttonLoadLibrary_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openKeyDialog = new OpenFileDialog
+            OpenFileDialog openLibraryDialog = new OpenFileDialog
             {
                 Filter = "TEK-Database (*.tekdb)|*.tekdb",
-                Title = "Select a Library Database"
+                Title = "Select a Library"
             };
-            if (openKeyDialog.ShowDialog() == DialogResult.OK)
+            if (openLibraryDialog.ShowDialog() != DialogResult.OK)
+            {
+                throw new InvalidTekKeyFormatException("No library selected");
+            }
+
+            MemoryStream tempStream = key.Decrpt(openLibraryDialog.FileName).Result;
+            using (FileStream fileStream = new FileStream(Path.Combine(Directory.GetCurrentDirectory(), "library.db"), FileMode.Create, FileAccess.Write))
+            {
+                tempStream.WriteTo(fileStream);
+            }
+
+
+            //DB entschlüsseln und schreiben
+            //DB lesen und backup in ram erstellen
+            //DB verschlüsseln
+            //Bei speichervorgang DB wieder entschlüsseln und speichern
+
+
+            string persistentDbPath = $"Data Source=library.db;Version=3;";
+            string memoryDbPath = "Data Source=:memory:;Version=3;";
+            using (SqliteConnection persistentConnection = new SqliteConnection(persistentDbPath))
+            using (DatabaseConnection = new SqliteConnection(memoryDbPath))
             {
                 try
                 {
-                    MemoryStream tempStream = key.Decrpt(openKeyDialog.FileName).Result;
-                    byte[] decryptedDatabase = tempStream.ToArray();
-                    using (MemoryStream memoryStream = new MemoryStream(decryptedDatabase))
-                    {
-                        //Verbindung zu DB in RAM herstellen
-                        var connectionString = "Data Source=file:memdb1?mode=memory&cache=shared";
-                        using (var connection = new SqliteConnection(connectionString))
-                        {
-                            connection.Open();
+                    // Verbindung zur Datenbank herstellen
+                    persistentConnection.Open();
+                    DatabaseConnection.Open();
 
-                            //Daten in RAM laden
-                            using (var command = connection.CreateCommand())
-                            {
-                                command.CommandText = "ATTACH DATABASE ':memory:' AS ramdb";
-                                command.ExecuteNonQuery();
-
-                                //Stream-Daten in SQLite kopieren
-                                memoryStream.Seek(0, SeekOrigin.Begin);
-                                var tempFilePath = Path.GetTempFileName(); //Temporäre Datei
-                                File.WriteAllBytes(tempFilePath, decryptedDatabase); //Entschlüsselte Datenbank speichern
-                                command.CommandText = $"ATTACH DATABASE '{tempFilePath}' AS tempdb";
-                                command.ExecuteNonQuery();
-
-                                //Beispieldaten abfragen
-                                command.CommandText = "SELECT name FROM sqlite_master WHERE type='table'";
-                                using (var reader = command.ExecuteReader())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        Console.WriteLine($"Tabelle: {reader.GetString(0)}");
-                                    }
-                                }
-
-                                // Temporäre Datei löschen
-                                File.Delete(tempFilePath);
-                            }
-                        }
-                    }
+                    persistentConnection.BackupDatabase(DatabaseConnection);
+                    persistentConnection.Close();
+                    File.Delete("library.db");
+                    Debug.WriteLine("DB loaded into RAM");
+                    buttonLoadLibrary.Enabled = false;
+                    buttonAlterExistingDirectory.Enabled = true;
+                    buttonCreateDirectory.Enabled = true;
+                    buttonDeleteExistingDirectory.Enabled = true;
                 }
                 catch (Exception ex)
                 {
-
+                    throw new DBConcurrencyException("Error while loading the library", ex);
                 }
+            }
+        }
+
+        private void buttonCreateLibrary_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog fileDialog = new SaveFileDialog
+            {
+                Filter = "TEK-Database (*.tekdb)|*.tekdb",
+                Title = "Save Library",
+                FileName = "library.tekdb"
+            };
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+
             }
         }
     }
