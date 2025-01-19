@@ -110,7 +110,16 @@ namespace ThingImageLibrary
             {
                 try
                 {
-                    key.Load(openKeyDialog.FileName);
+                    bool success = false;
+                    success = key.Load(openKeyDialog.FileName);
+                    if (success)
+                    {
+                        labelKeyStatus.Text = "LOADED";
+                        labelKeyStatus.ForeColor = Color.Green;
+                        buttonCreateLibrary.Enabled = true;
+                        buttonLoadKey.Enabled = false;
+                        buttonLoadLibrary.Enabled = true;
+                    }
                 }
                 catch (TekKeyPasswordRequiredException p)
                 {
@@ -126,7 +135,7 @@ namespace ThingImageLibrary
                             passwordStatus = PasswordStatus.Undefined;
                             try
                             {
-                                success = key.Load(openKeyDialog.FileName, _password);
+                                success = key.Load(_password);
                             }
                             catch (TekKeyPasswordInvalidException ex)
                             {
@@ -142,6 +151,9 @@ namespace ThingImageLibrary
                     {
                         labelKeyStatus.Text = "LOADED";
                         labelKeyStatus.ForeColor = Color.Green;
+                        buttonCreateLibrary.Enabled = true;
+                        buttonLoadKey.Enabled = false;
+                        buttonLoadLibrary.Enabled = true;
                     }
 
                 }
@@ -216,7 +228,52 @@ namespace ThingImageLibrary
             };
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
+                string connectionString = "Data Source=:memory:;Version=3;";
 
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+
+                    //Create all tables
+                    string createTableQuery =
+                        "CREATE TABLE \"Chunkmaster\"" +
+                        "(" +
+                        "\"ID\" INTEGER NOT NULL," +
+                        "\"size\" INTEGER NOT NULL," +
+                        "PRIMARY KEY(\"ID\" AUTOINCREMENT" +
+                        ");" +
+                        "CREATE TABLE \"directories\"" +
+                        "(" +
+                        "\"ID\" INTEGER NOT NULL," +
+                        "\"Name\" TEXT NOT NULL," +
+                        "\"ChunkID\" INTEGER NOT NULL," +
+                        "\"PRIMARY KEY\"(\"ID\" AUTOINCREMENT)" +
+                        ");" +
+                        "CREATE TABLE \"images\"" +
+                        "(" +
+                        "\"ID\" INTEGER NOT NULL," +
+                        "\"directoryID\" INTEGER NOT NULL," +
+                        "\"chunkID\" INTEGER NOT NULL," +
+                        "PRIMARY KEY(\"ID\" AUTOINCREMENT)" +
+                        ");";
+
+
+                    using (SqliteCommand createTableCommand = new SqliteCommand(createTableQuery, connection))
+                    {
+                        createTableCommand.ExecuteNonQuery();
+                        Debug.WriteLine("DB created");
+                    }
+
+
+                    connection.BackupDatabase(new SqliteConnection($"Data Source={Path.Combine(Directory.GetCurrentDirectory(), "temp.db")};Version=3;"));
+                    byte[] dbBytes = File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "temp.db"));
+                    File.WriteAllBytes(fileDialog.FileName, key.Encrypt(dbBytes).Result.ToArray());
+                    File.Delete(Path.Combine(Directory.GetCurrentDirectory(), "temp.db"));
+
+                    Debug.WriteLine("DB saved");
+                    connection.Close();
+                    MessageBox.Show("Library created successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
     }
