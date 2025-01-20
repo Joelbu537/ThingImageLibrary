@@ -37,7 +37,7 @@ namespace ThingImageLibrary
 
                 ushort keyID = Convert.ToUInt16(new Random().Next(0, 65535));
                 byte version = newestVersion;
-                byte pwdProtected = (password != "") ? (byte)1 : (byte)0;
+                byte pwdProtected = 0;
 
                 //Public Info END
 
@@ -52,6 +52,7 @@ namespace ThingImageLibrary
                 byte[] tempArray = aesMainKey.Concat(aesMainIV).ToArray();
                 if (password != "")
                 {
+                    pwdProtected = 1;
                     byte[] passwordBytes;
                     passwordBytes = Encoding.UTF8.GetBytes(password);
                     privateMD5 = GetMD5(tempArray);
@@ -61,11 +62,13 @@ namespace ThingImageLibrary
 
 
                 // Private Info END
-                return result = BitConverter.GetBytes(keyID)                    //ID
+                byte[] tempResult = BitConverter.GetBytes(keyID)                    //ID
                     .Concat(BitConverter.GetBytes(version)).ToArray()           //Version
-                    .Concat(BitConverter.GetBytes(pwdProtected)).ToArray()      //PWD Status
+                    .Concat(BitConverter.GetBytes(pwdProtected).ToArray())    //PWD Status
                     .Concat(privateMD5).ToArray()                               //MD5
                     .Concat(tempArray).ToArray();                               //AES Key + IV
+                tempResult[3] = pwdProtected;
+                return tempResult;
             }
             catch (Exception ex)
             {
@@ -307,7 +310,7 @@ namespace ThingImageLibrary
             var aes = Aes.Create();
             var keyDerivation = new Rfc2898DeriveBytes(password, aes.BlockSize / 8);
             aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
-            aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+            aes.IV = new byte[16];
 
             //Verschlüsseln
             var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
@@ -322,7 +325,7 @@ namespace ThingImageLibrary
             var aes = Aes.Create();
             var keyDerivation = new Rfc2898DeriveBytes(password, aes.BlockSize / 8);
             aes.Key = keyDerivation.GetBytes(aes.KeySize / 8);
-            aes.IV = keyDerivation.GetBytes(aes.BlockSize / 8);
+            aes.IV = new byte[16];
 
             //Entschlüsseln
             var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);

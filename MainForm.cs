@@ -105,13 +105,14 @@ namespace ThingImageLibrary
                 Filter = "TEK-Key (*.tek)|*.tek",
                 Title = "Select a TEK Key"
             };
-
+            string keypath;
             if (openKeyDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
                     bool success = false;
-                    success = key.Load(openKeyDialog.FileName);
+                    keypath = openKeyDialog.FileName;
+                    success = key.Load(keypath);
                     if (success)
                     {
                         labelKeyStatus.Text = "LOADED";
@@ -135,7 +136,7 @@ namespace ThingImageLibrary
                             passwordStatus = PasswordStatus.Undefined;
                             try
                             {
-                                success = key.Load(_password);
+                                success = key.Load(openKeyDialog.FileName, _password);
                             }
                             catch (TekKeyPasswordInvalidException ex)
                             {

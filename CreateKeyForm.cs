@@ -86,7 +86,8 @@ namespace ThingImageLibrary
 
         private void CreateKeyForm_Load(object sender, EventArgs e)
         {
-
+            checkBoxPwdRequired.Checked = true;
+            checkBoxPwdRequired_CheckedChanged(null, EventArgs.Empty);
         }
     }
 }
