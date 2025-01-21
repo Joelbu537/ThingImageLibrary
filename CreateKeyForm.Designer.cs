@@ -45,7 +45,7 @@
             this.checkBoxPwdRequired.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.checkBoxPwdRequired.Name = "checkBoxPwdRequired";
             this.checkBoxPwdRequired.Size = new System.Drawing.Size(172, 24);
-            this.checkBoxPwdRequired.TabIndex = 0;
+            this.checkBoxPwdRequired.TabIndex = 4;
             this.checkBoxPwdRequired.Text = "Requires Password";
             this.checkBoxPwdRequired.UseVisualStyleBackColor = true;
             this.checkBoxPwdRequired.CheckedChanged += new System.EventHandler(this.checkBoxPwdRequired_CheckedChanged);
@@ -117,7 +117,7 @@
             this.textBoxPasswordConfirm.Name = "textBoxPasswordConfirm";
             this.textBoxPasswordConfirm.PasswordChar = '*';
             this.textBoxPasswordConfirm.Size = new System.Drawing.Size(324, 33);
-            this.textBoxPasswordConfirm.TabIndex = 6;
+            this.textBoxPasswordConfirm.TabIndex = 3;
             this.textBoxPasswordConfirm.TextChanged += new System.EventHandler(this.textBoxPasswordConfirm_TextChanged);
             // 
             // buttonOK
@@ -127,7 +127,7 @@
             this.buttonOK.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(112, 35);
-            this.buttonOK.TabIndex = 7;
+            this.buttonOK.TabIndex = 0;
             this.buttonOK.Text = "Create";
             this.buttonOK.UseVisualStyleBackColor = true;
             this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
@@ -150,7 +150,7 @@
             this.Name = "CreateKeyForm";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Create New Library";
+            this.Text = "Create New Key";
             this.Load += new System.EventHandler(this.CreateKeyForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

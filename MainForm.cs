@@ -51,6 +51,7 @@ namespace ThingImageLibrary
                             buttonCreateLibrary.Enabled = true;
                             buttonLoadKey.Enabled = false;
                             buttonLoadLibrary.Enabled = true;
+                            buttonLoadLibrary.Focus();
                         }
                     }
                     catch(TekKeyPasswordRequiredException p)
@@ -89,6 +90,10 @@ namespace ThingImageLibrary
                         }
                         
                     }
+                }
+                else
+                {
+                    buttonLoadKey.Focus();
                 }
             }
         }

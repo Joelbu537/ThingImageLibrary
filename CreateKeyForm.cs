@@ -88,6 +88,10 @@ namespace ThingImageLibrary
         {
             checkBoxPwdRequired.Checked = true;
             checkBoxPwdRequired_CheckedChanged(null, EventArgs.Empty);
+
+            //Bis Passwortverschlüsselung funktioniert
+            checkBoxPwdRequired.Checked = false;
+            checkBoxPwdRequired.Enabled = false;
         }
     }
 }

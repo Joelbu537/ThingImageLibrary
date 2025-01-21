@@ -58,7 +58,7 @@
             this.buttonLoadLibrary.Location = new System.Drawing.Point(986, 12);
             this.buttonLoadLibrary.Name = "buttonLoadLibrary";
             this.buttonLoadLibrary.Size = new System.Drawing.Size(280, 38);
-            this.buttonLoadLibrary.TabIndex = 1;
+            this.buttonLoadLibrary.TabIndex = 2;
             this.buttonLoadLibrary.Text = "Load Library";
             this.buttonLoadLibrary.UseVisualStyleBackColor = true;
             this.buttonLoadLibrary.Click += new System.EventHandler(this.buttonLoadLibrary_Click);
@@ -69,7 +69,7 @@
             this.buttonLoadKey.Location = new System.Drawing.Point(986, 783);
             this.buttonLoadKey.Name = "buttonLoadKey";
             this.buttonLoadKey.Size = new System.Drawing.Size(280, 38);
-            this.buttonLoadKey.TabIndex = 2;
+            this.buttonLoadKey.TabIndex = 1;
             this.buttonLoadKey.Text = "Load Existing Key";
             this.buttonLoadKey.UseVisualStyleBackColor = true;
             this.buttonLoadKey.Click += new System.EventHandler(this.buttonLoadKey_Click);
@@ -80,7 +80,7 @@
             this.buttonGenerateNewKey.Location = new System.Drawing.Point(986, 738);
             this.buttonGenerateNewKey.Name = "buttonGenerateNewKey";
             this.buttonGenerateNewKey.Size = new System.Drawing.Size(280, 38);
-            this.buttonGenerateNewKey.TabIndex = 3;
+            this.buttonGenerateNewKey.TabIndex = 0;
             this.buttonGenerateNewKey.Text = "Create New Key";
             this.buttonGenerateNewKey.UseVisualStyleBackColor = true;
             this.buttonGenerateNewKey.Click += new System.EventHandler(this.buttonGenerateNewKey_Click);
@@ -116,7 +116,7 @@
             this.buttonCreateLibrary.Location = new System.Drawing.Point(986, 56);
             this.buttonCreateLibrary.Name = "buttonCreateLibrary";
             this.buttonCreateLibrary.Size = new System.Drawing.Size(280, 38);
-            this.buttonCreateLibrary.TabIndex = 6;
+            this.buttonCreateLibrary.TabIndex = 3;
             this.buttonCreateLibrary.Text = "Create New Library";
             this.buttonCreateLibrary.UseVisualStyleBackColor = true;
             this.buttonCreateLibrary.Click += new System.EventHandler(this.buttonCreateLibrary_Click);
@@ -128,7 +128,7 @@
             this.buttonCreateDirectory.Location = new System.Drawing.Point(986, 165);
             this.buttonCreateDirectory.Name = "buttonCreateDirectory";
             this.buttonCreateDirectory.Size = new System.Drawing.Size(280, 38);
-            this.buttonCreateDirectory.TabIndex = 7;
+            this.buttonCreateDirectory.TabIndex = 4;
             this.buttonCreateDirectory.Text = "Create New Directory";
             this.buttonCreateDirectory.UseVisualStyleBackColor = true;
             // 
@@ -149,7 +149,7 @@
             this.buttonAlterExistingDirectory.Location = new System.Drawing.Point(986, 209);
             this.buttonAlterExistingDirectory.Name = "buttonAlterExistingDirectory";
             this.buttonAlterExistingDirectory.Size = new System.Drawing.Size(280, 38);
-            this.buttonAlterExistingDirectory.TabIndex = 9;
+            this.buttonAlterExistingDirectory.TabIndex = 5;
             this.buttonAlterExistingDirectory.Text = "Edit Existing Directory";
             this.buttonAlterExistingDirectory.UseVisualStyleBackColor = true;
             // 
@@ -160,7 +160,7 @@
             this.buttonDeleteExistingDirectory.Location = new System.Drawing.Point(986, 253);
             this.buttonDeleteExistingDirectory.Name = "buttonDeleteExistingDirectory";
             this.buttonDeleteExistingDirectory.Size = new System.Drawing.Size(280, 38);
-            this.buttonDeleteExistingDirectory.TabIndex = 10;
+            this.buttonDeleteExistingDirectory.TabIndex = 6;
             this.buttonDeleteExistingDirectory.Text = "Delete Existing Directory";
             this.buttonDeleteExistingDirectory.UseVisualStyleBackColor = true;
             // 
