@@ -17,7 +17,7 @@ namespace ThingImageLibrary
             InitializeComponent();
             if (_status)
             {
-                labelIncorrectPassword.Enabled = true;
+                labelIncorrectPassword.Visible = true;
             }
         }
 
@@ -44,6 +44,11 @@ namespace ThingImageLibrary
         {
             MainForm.passwordStatus = PasswordStatus.Canceled;
             this.Close();
+        }
+
+        private void PasswordRequiredForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

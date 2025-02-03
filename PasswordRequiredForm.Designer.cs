@@ -39,9 +39,10 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 38);
+            this.label1.Location = new System.Drawing.Point(22, 55);
+            this.label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(379, 20);
+            this.label1.Size = new System.Drawing.Size(580, 29);
             this.label1.TabIndex = 0;
             this.label1.Text = "The Key you are trying to load is password protected.";
             // 
@@ -49,18 +50,20 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(12, 9);
+            this.label2.Location = new System.Drawing.Point(19, 13);
+            this.label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(292, 29);
+            this.label2.Size = new System.Drawing.Size(424, 40);
             this.label2.TabIndex = 1;
             this.label2.Text = "Authentication Required";
             // 
             // buttonProceed
             // 
             this.buttonProceed.Enabled = false;
-            this.buttonProceed.Location = new System.Drawing.Point(356, 125);
+            this.buttonProceed.Location = new System.Drawing.Point(554, 181);
+            this.buttonProceed.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.buttonProceed.Name = "buttonProceed";
-            this.buttonProceed.Size = new System.Drawing.Size(82, 32);
+            this.buttonProceed.Size = new System.Drawing.Size(128, 46);
             this.buttonProceed.TabIndex = 2;
             this.buttonProceed.Text = "Proceed";
             this.buttonProceed.UseVisualStyleBackColor = true;
@@ -68,9 +71,10 @@
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(12, 125);
+            this.buttonCancel.Location = new System.Drawing.Point(19, 181);
+            this.buttonCancel.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.buttonCancel.Name = "buttonCancel";
-            this.buttonCancel.Size = new System.Drawing.Size(82, 32);
+            this.buttonCancel.Size = new System.Drawing.Size(128, 46);
             this.buttonCancel.TabIndex = 3;
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
@@ -78,31 +82,33 @@
             // 
             // textBoxPassword
             // 
-            this.textBoxPassword.Location = new System.Drawing.Point(16, 75);
+            this.textBoxPassword.Location = new System.Drawing.Point(25, 109);
+            this.textBoxPassword.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.textBoxPassword.MaxLength = 512;
             this.textBoxPassword.Name = "textBoxPassword";
             this.textBoxPassword.PasswordChar = '*';
-            this.textBoxPassword.Size = new System.Drawing.Size(421, 26);
+            this.textBoxPassword.Size = new System.Drawing.Size(653, 35);
             this.textBoxPassword.TabIndex = 4;
             this.textBoxPassword.TextChanged += new System.EventHandler(this.textBoxPassword_TextChanged);
             // 
             // labelIncorrectPassword
             // 
             this.labelIncorrectPassword.AutoSize = true;
-            this.labelIncorrectPassword.Enabled = false;
             this.labelIncorrectPassword.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelIncorrectPassword.ForeColor = System.Drawing.Color.Red;
-            this.labelIncorrectPassword.Location = new System.Drawing.Point(116, 131);
+            this.labelIncorrectPassword.Location = new System.Drawing.Point(180, 190);
+            this.labelIncorrectPassword.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.labelIncorrectPassword.Name = "labelIncorrectPassword";
-            this.labelIncorrectPassword.Size = new System.Drawing.Size(163, 20);
+            this.labelIncorrectPassword.Size = new System.Drawing.Size(237, 29);
             this.labelIncorrectPassword.TabIndex = 5;
             this.labelIncorrectPassword.Text = "Incorrect Password";
+            this.labelIncorrectPassword.Visible = false;
             // 
             // PasswordRequiredForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(14F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(450, 174);
+            this.ClientSize = new System.Drawing.Size(700, 252);
             this.ControlBox = false;
             this.Controls.Add(this.labelIncorrectPassword);
             this.Controls.Add(this.textBoxPassword);
@@ -110,6 +116,7 @@
             this.Controls.Add(this.buttonProceed);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.Margin = new System.Windows.Forms.Padding(5, 4, 5, 4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "PasswordRequiredForm";
@@ -117,6 +124,7 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PasswordRequiredForm";
+            this.Load += new System.EventHandler(this.PasswordRequiredForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
